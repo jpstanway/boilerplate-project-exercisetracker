@@ -49,6 +49,15 @@ app.post('/api/exercise/new-user', (req, res) => {
   
 });
 
+// get all users
+app.get('/api/exercise/users', (req, res) => {
+  User.find(null, 'username _id', (err, data) => {
+    if (err) res.send('Error finding users');
+
+    res.send(data);
+  });
+});
+
 
 /*-------------------------------------------------------- */
 // Not found middleware
