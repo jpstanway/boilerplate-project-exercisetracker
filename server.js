@@ -22,9 +22,18 @@ app.get('/', (req, res) => {
 
 // user model
 const userSchema = new Schema({
-  username: {type: String, required: true}
+  username: {type: String, required: true},
+  exercise_log: []
 });
+
+const exerciseSchema = new Schema({
+  description: {type: String, required: true},
+  duration: {type: Number, required: true},
+  date: Date
+}, {_id: false});
+
 const User = mongoose.model('User', userSchema);
+const Exercise = mongoose.model('Exercise', exerciseSchema);
 
 // create user name
 app.post('/api/exercise/new-user', (req, res) => {  
@@ -35,7 +44,7 @@ app.post('/api/exercise/new-user', (req, res) => {
     if (err) res.send('Error searching database');
 
     if (data) {
-      res.send('User already exists!');
+      res.send('User already exists!\n' + data);
     } else {
       //save new user
       const user = new User({username: username});
@@ -47,6 +56,30 @@ app.post('/api/exercise/new-user', (req, res) => {
     }
   });
   
+});
+
+// add exercises
+app.post('/api/exercise/add', (req, res) => {
+  const userId = req.body.userId;
+  const desc = req.body.description;
+  const time = req.body.duration;
+  const date = req.body.date || Date.now();
+
+  // set update parameters
+  const query = {_id: userId};
+  const update = new Exercise({
+    description: desc,
+    duration: time, 
+    date: date
+  });
+  const options = {new: true};
+  
+  // perform a search and update on id
+  User.findOneAndUpdate(query, {$push: {exercise_log: update}}, options, (err, data) => {
+    if (err) res.send('Failed to update user info ' + err);
+
+    res.send(data);
+  });
 });
 
 // get all users
