@@ -23,6 +23,8 @@ app.get('/', (req, res) => {
 // user model
 const userSchema = new Schema({
   username: {type: String, required: true},
+  from: Date,
+  to: Date,
   count: {type: Number, default: 0},
   exercise_log: []
 }, {versionKey: false});
@@ -76,10 +78,11 @@ app.post('/api/exercise/add', (req, res) => {
   const options = {new: true};
   
   // perform a search and update on id
-  User.findOneAndUpdate(query, {$push: {exercise_log: update}, $inc: {count: 1}}, options, (err, data) => {
+  User.findOneAndUpdate(query, {$push: {exercise_log: update}}, options, (err, data) => {
     if (err) res.send('Failed to update user info ' + err);
+    data.count = data.exercise_log.length;
     
-    res.send(data);
+    res.send(data || 'Invalid userId');
   });
 });
 
@@ -88,10 +91,28 @@ app.get('/api/exercise/users', (req, res) => {
   User.find(null, 'username _id', (err, data) => {
     if (err) res.send('Error finding users');
 
-    res.send(data);
+    res.send(data || 'No users in database!');
   });
 });
 
+// get user info by id
+app.get('/api/exercise/log', (req, res) => {
+  const { userId, limit, from, to } = req.query;
+
+  User.findById(userId, (err, data) => {
+    if (err) res.send('Error searching database for user');
+    
+    // if limit is set, narrow results down to amount
+    if (limit) {
+      data.exercise_log = data.exercise_log.slice(0, limit);
+    }
+
+    // assign log array length to count property
+    data.count = data.exercise_log.length;
+
+    res.send(data || 'User doesn\'t exist');
+  });
+});
 
 /*-------------------------------------------------------- */
 // Not found middleware
