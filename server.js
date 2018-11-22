@@ -101,6 +101,16 @@ app.get('/api/exercise/log', (req, res) => {
 
   User.findById(userId, (err, data) => {
     if (err) res.send('Error searching database for user');
+
+    // return results from specific date only
+    if (from) {
+      data.exercise_log = data.exercise_log.filter((exercise) => exercise.date >= Date.parse(from));
+    }
+
+    // return results up to a specific date only
+    if (to) {
+      data.exercise_log = data.exercise_log.filter((exercise) => exercise.date <= Date.parse(to));
+    }
     
     // if limit is set, narrow results down to amount
     if (limit) {
