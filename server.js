@@ -23,8 +23,9 @@ app.get('/', (req, res) => {
 // user model
 const userSchema = new Schema({
   username: {type: String, required: true},
+  count: {type: Number, default: 0},
   exercise_log: []
-});
+}, {versionKey: false});
 
 const exerciseSchema = new Schema({
   description: {type: String, required: true},
@@ -75,9 +76,9 @@ app.post('/api/exercise/add', (req, res) => {
   const options = {new: true};
   
   // perform a search and update on id
-  User.findOneAndUpdate(query, {$push: {exercise_log: update}}, options, (err, data) => {
+  User.findOneAndUpdate(query, {$push: {exercise_log: update}, $inc: {count: 1}}, options, (err, data) => {
     if (err) res.send('Failed to update user info ' + err);
-
+    
     res.send(data);
   });
 });
