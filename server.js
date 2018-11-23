@@ -63,27 +63,30 @@ app.post('/api/exercise/new-user', (req, res) => {
 
 // add exercises
 app.post('/api/exercise/add', (req, res) => {
-  const userId = req.body.userId;
-  const desc = req.body.description;
-  const time = req.body.duration;
+  const { userId, description, duration } = req.body;
   const date = req.body.date || Date.now();
 
-  // set update parameters
-  const query = {_id: userId};
-  const update = new Exercise({
-    description: desc,
-    duration: time, 
-    date: date
-  });
-  const options = {new: true};
-  
-  // perform a search and update on id
-  User.findOneAndUpdate(query, {$push: {exercise_log: update}}, options, (err, data) => {
-    if (err) res.send('Failed to update user info ' + err);
-    data.count = data.exercise_log.length;
+  // check required fields
+  if (!description || !duration ) {
+    res.send('Please fill out all required items!');
+  } else {
+    // set update parameters
+    const query = {_id: userId};
+    const update = new Exercise({
+      description: description,
+      duration: duration, 
+      date: date
+    });
+    const options = {new: true};
     
-    res.send(data || 'Invalid userId');
-  });
+    // perform a search and update on id
+    User.findOneAndUpdate(query, {$push: {exercise_log: update}}, options, (err, data) => {
+      if (err) res.send('Failed to update user info - check to make sure userId is correct');
+      data.count = data.exercise_log.length;
+      
+      res.send(data || 'Invalid userId');
+    });
+  }
 });
 
 // get all users
